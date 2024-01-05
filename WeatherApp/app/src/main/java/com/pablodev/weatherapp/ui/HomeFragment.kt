@@ -10,6 +10,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.pablodev.weatherapp.Constants
@@ -19,7 +20,9 @@ import com.pablodev.weatherapp.data.toLatLng
 import com.pablodev.weatherapp.databinding.FragmentHomeBinding
 import com.pablodev.weatherapp.network.ApiWeatherModule
 import com.pablodev.weatherapp.network.NetworkModule
+import com.pablodev.weatherapp.utils.CardinalDirection
 import com.pablodev.weatherapp.utils.Logger
+import com.pablodev.weatherapp.utils.calculateDestination
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
@@ -83,8 +86,23 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         val cityName = weatherResponse.name
         location?.let {
             mMap.clear()
-            mMap.addMarker(MarkerOptions().position(it).title(cityName))
+            val cityMarker = mMap.addMarker(MarkerOptions().position(it).title(cityName))
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it, Constants.DEFAULT_ZOOM))
+            mMap.setOnMarkerClickListener { _ ->
+                addFourLocations(it)
+                false
+            }
+            //addFourLocations(it)
+        }
+    }
+
+    private fun addFourLocations(mainLocation: LatLng) {
+        for (direction in CardinalDirection.entries) {
+            mMap.addMarker(
+                MarkerOptions().position(
+                    mainLocation.calculateDestination(Constants.DEFAULT_DISTANCE, direction.bearing)
+                )
+            )
         }
     }
 
