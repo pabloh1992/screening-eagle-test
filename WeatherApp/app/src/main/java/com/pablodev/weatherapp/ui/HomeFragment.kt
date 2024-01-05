@@ -1,5 +1,6 @@
 package com.pablodev.weatherapp.ui
 
+import android.app.AlertDialog
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -79,19 +80,34 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
         viewModel.locationsWeatherResponse.observe(viewLifecycleOwner) { results ->
 
-            val directionWithHighestTemp = results.maxByOrNull { it.value?.main?.temp ?: Double.MIN_VALUE }?.key
-            val directionWithHighestHumidity = results.maxByOrNull { it.value?.main?.humidity ?: Int.MIN_VALUE }?.key
-            val directionWithHighestWindSpeed = results.maxByOrNull { it.value?.wind?.speed ?: Double.MIN_VALUE }?.key
-            val directionWithLongestRain = results.maxByOrNull { it.value?.rain?.oneHour ?: Double.MIN_VALUE}?.key
+            val directionWithHighestTemp =
+                results.maxByOrNull { it.value?.main?.temp ?: Double.MIN_VALUE }?.key
+            val directionWithHighestHumidity =
+                results.maxByOrNull { it.value?.main?.humidity ?: Int.MIN_VALUE }?.key
+            val directionWithHighestWindSpeed =
+                results.maxByOrNull { it.value?.wind?.speed ?: Double.MIN_VALUE }?.key
+            val directionWithLongestRain =
+                results.maxByOrNull { it.value?.rain?.oneHour ?: Double.MIN_VALUE }?.key
 
-            logger.debug("Highest Temperature: $directionWithHighestTemp")
-            logger.debug("Temperature ${results[directionWithHighestTemp]?.main?.temp}")
-            logger.debug("Highest Humidity: $directionWithHighestHumidity")
-            logger.debug("Humidity ${results[directionWithHighestTemp]?.main?.humidity}")
-            logger.debug("Highest Wind Speed: $directionWithHighestWindSpeed")
-            logger.debug("Wind Speed ${results[directionWithHighestWindSpeed]?.wind?.speed}")
-            logger.debug("Highest Longest Rain: $directionWithLongestRain")
-            logger.debug("Rain time ${results[directionWithLongestRain]?.rain?.oneHour}")
+            val message = """
+                Highest Temperature: ${if(results.all { it.value?.main?.temp == null }) "-" else directionWithHighestTemp}
+                Temperature: ${results[directionWithHighestTemp]?.main?.temp?: "-"}
+                Name: ${if(results.all { it.value?.main?.temp == null }) "-" else results[directionWithHighestTemp]?.name ?: "-"}
+                
+                Highest Humidity: ${if(results.all { it.value?.main?.humidity == null }) "-" else directionWithHighestHumidity}
+                Humidity: ${results[directionWithHighestHumidity]?.main?.humidity?: "-"}
+                Name: ${if(results.all { it.value?.main?.humidity == null }) "-" else results[directionWithHighestHumidity]?.name ?: "-"}
+                
+                Highest Wind Speed: ${if(results.all { it.value?.wind?.speed == null }) "-" else directionWithHighestWindSpeed}
+                Wind Speed: ${results[directionWithHighestWindSpeed]?.wind?.speed?: "-"}
+                Name: ${if(results.all { it.value?.wind?.speed == null }) "-" else results[directionWithHighestWindSpeed]?.name ?: "-"}
+                
+                Longest Rain: ${if(results.all { it.value?.rain?.oneHour == null }) "-" else directionWithLongestRain}
+                Rain Time: ${results[directionWithLongestRain]?.rain?.oneHour ?: "-"}
+                Name: ${if(results.all { it.value?.rain?.oneHour == null }) "-" else results[directionWithLongestRain]?.name ?: "-"}
+           """.trimIndent()
+
+            showDialog(message)
         }
     }
 
@@ -128,5 +144,17 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun showErrorSnackbar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun showDialog(message: String) {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Weather Information")
+        builder.setMessage(message)
+        builder.setPositiveButton("OK") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        val dialog = builder.create()
+        dialog.show()
     }
 }
