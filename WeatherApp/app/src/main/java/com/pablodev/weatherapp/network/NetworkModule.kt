@@ -46,29 +46,13 @@ class NetworkModule(private val api: ApiWeatherService) {
         )
     }
 
-    fun getWeatherByCity(
-        cityName : String,
+    fun getWeather(
+        cityName : String?,
+        zipCode: String?,
         onSuccess: (WeatherResponse?) -> Unit = {},
         onError: (ErrorResponse) -> Unit = {}) {
         callApi(
-            call = api.getWeatherByCity(cityName = cityName),
-            onSuccess = { response ->
-                response.body()?.let {
-                    onSuccess(it)
-                }
-            },
-            onError = {
-                onError(it)
-            }
-        )
-    }
-
-    fun getWeatherByZipCode(
-        zipCode : String,
-        onSuccess: (WeatherResponse?) -> Unit = {},
-        onError: (ErrorResponse) -> Unit = {}) {
-        callApi(
-            call = api.getWeatherByZipCode(zipCode = zipCode),
+            call = api.getWeather(cityName = cityName, zipCode = zipCode),
             onSuccess = { response ->
                 response.body()?.let {
                     onSuccess(it)

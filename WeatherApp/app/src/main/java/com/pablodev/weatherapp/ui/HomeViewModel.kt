@@ -22,25 +22,17 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
     val error: LiveData<ErrorResponse> = _error
 
     fun getWeather(query: String) {
-        if (query.isNumeric()) {
-            logger.debug("Searching ZipCode = $query")
-            viewModelScope.launch {
-                networkModule.getWeatherByZipCode(
-                    zipCode = query,
-                    onSuccess = onWeatherSuccess,
-                    onError = onWeatherError
-                )
-            }
 
-        } else {
-            logger.debug("Searching cityName = $query")
-            viewModelScope.launch {
-                networkModule.getWeatherByCity(
-                    cityName = query,
-                    onSuccess = onWeatherSuccess,
-                    onError = onWeatherError
-                )
-            }
+        val zipCode: String? = if (query.isNumeric()) query else null
+        val cityName: String? = if (!query.isNumeric()) query else null
+
+        viewModelScope.launch {
+            networkModule.getWeather(
+                zipCode = zipCode,
+                cityName = cityName,
+                onSuccess = onWeatherSuccess,
+                onError = onWeatherError
+            )
         }
     }
 

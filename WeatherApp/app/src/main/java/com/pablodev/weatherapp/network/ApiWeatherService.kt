@@ -9,15 +9,9 @@ import retrofit2.http.Query
 interface ApiWeatherService {
 
     @GET("weather")
-    fun getWeatherByCity(
-        @Query("q") cityName: String,
-        @Query("units") units: String = Constants.DEFAULT_TEMP_UNITS,
-        @Query("appid") apiKey: String = Constants.API_KEY
-    ): Call<WeatherResponse>
-
-    @GET("weather")
-    fun getWeatherByZipCode(
-        @Query("zip") zipCode: String,
+    fun getWeather(
+        @Query("q") cityName: String?,
+        @Query("zip") zipCode: String?,
         @Query("units") units: String = Constants.DEFAULT_TEMP_UNITS,
         @Query("appid") apiKey: String = Constants.API_KEY
     ): Call<WeatherResponse>
