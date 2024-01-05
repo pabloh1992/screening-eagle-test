@@ -10,23 +10,37 @@ import com.pablodev.weatherapp.network.NetworkModule
 import com.pablodev.weatherapp.utils.Logger
 import kotlinx.coroutines.launch
 
-class HomeViewModel constructor(private val repository: NetworkModule) : ViewModel() {
+class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
 
     private val logger = Logger.getInstance(javaClass)
 
     private val _weatherResponse = MutableLiveData<WeatherResponse>()
     val weatherResponse: LiveData<WeatherResponse> = _weatherResponse
 
-    fun getWeatherByCity(cityName: String) {
-        viewModelScope.launch {
-            repository.getWeatherByCity(
-                cityName = cityName,
-                onSuccess = { response ->
-                    response?.let {
-                        _weatherResponse.value = it
-                    }
-                }
-            )
+    fun getWeather(query: String) {
+        if (query.isNumeric()) {
+            logger.debug("Searching ZipCode = $query")
+            viewModelScope.launch {
+                networkModule.getWeatherByZipCode(
+                    zipCode = query,
+                    onSuccess = onWeatherSuccess
+                )
+            }
+
+        } else {
+            logger.debug("Searching cityName = $query")
+            viewModelScope.launch {
+                networkModule.getWeatherByCity(
+                    cityName = query,
+                    onSuccess = onWeatherSuccess
+                )
+            }
+        }
+    }
+
+    private val onWeatherSuccess: (WeatherResponse?) -> Unit = { response ->
+        response?.let {
+            _weatherResponse.value = it
         }
     }
 
@@ -40,5 +54,9 @@ class HomeViewModel constructor(private val repository: NetworkModule) : ViewMod
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
+    }
+
+    private fun String.isNumeric(): Boolean {
+        return this.matches("\\d+".toRegex())
     }
 }

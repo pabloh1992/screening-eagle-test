@@ -58,7 +58,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         binding.apply {
             searchInputLayout.setEndIconOnClickListener {
                 val searchQuery = searchEditText.text.toString()
-                viewModel.getWeatherByCity(cityName = searchQuery)
+                viewModel.getWeather(query = searchQuery)
                 Toast.makeText(requireContext(), "Searching for: $searchQuery", Toast.LENGTH_SHORT).show()
             }
         }
@@ -66,6 +66,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun setUpObservers() {
         viewModel.weatherResponse.observe(viewLifecycleOwner) {
+            logger.debug("Weather response = $it")
             updateCityMarker(it)
         }
     }
