@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">WeatherApp</string>
     <string name="home_fragment_text">Home Fragment</string>
+    <string name="search_city">Search City or ZipCode</string>
 </resources>
