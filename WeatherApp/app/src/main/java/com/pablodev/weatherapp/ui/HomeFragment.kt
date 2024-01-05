@@ -5,13 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
 import com.pablodev.weatherapp.Constants
 import com.pablodev.weatherapp.R
 import com.pablodev.weatherapp.data.WeatherResponse
@@ -59,7 +59,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             searchInputLayout.setEndIconOnClickListener {
                 val searchQuery = searchEditText.text.toString()
                 viewModel.getWeather(query = searchQuery)
-                Toast.makeText(requireContext(), "Searching for: $searchQuery", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -68,6 +67,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         viewModel.weatherResponse.observe(viewLifecycleOwner) {
             logger.debug("Weather response = $it")
             updateCityMarker(it)
+        }
+        viewModel.error.observe(viewLifecycleOwner) {
+            showErrorSnackbar("Error: ${it.message}")
         }
     }
 
@@ -84,5 +86,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             mMap.addMarker(MarkerOptions().position(it).title(cityName))
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it, Constants.DEFAULT_ZOOM))
         }
+    }
+
+    private fun showErrorSnackbar(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 }

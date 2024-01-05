@@ -1,5 +1,7 @@
 package com.pablodev.weatherapp.network
 
+import com.google.gson.Gson
+import com.pablodev.weatherapp.data.ErrorResponse
 import com.pablodev.weatherapp.data.WeatherResponse
 import com.pablodev.weatherapp.utils.Logger
 import retrofit2.Call
@@ -9,11 +11,12 @@ import retrofit2.Response
 class NetworkModule(private val api: ApiWeatherService) {
 
     private val logger = Logger.getInstance(javaClass)
+    private val genericError = ErrorResponse("404", "Unknown error")
 
     private fun <T> callApi(
         call: Call<T>,
         onSuccess: (Response<T>) -> Unit,
-        onError: (String) -> Unit
+        onError: (ErrorResponse) -> Unit
     ) {
 
         call.enqueue(
@@ -24,18 +27,20 @@ class NetworkModule(private val api: ApiWeatherService) {
                         onSuccess(response)
                     } else {
                         try {
-                            val error = response.errorBody()?.string()
-                            logger.debug("Error ${response.errorBody()}")
-                            onError(error ?: "onError")
+                            val errorBody = response.errorBody()?.string()
+                            val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                            logger.debug("Error $errorBody")
+                            onError(errorResponse ?: genericError)
+
                         } catch (ex: Exception) {
-                            onError("onError")
+                            onError(genericError)
                         }
                     }
                 }
 
                 override fun onFailure(call: Call<T>, t: Throwable) {
                     logger.debug(t.toString())
-                    onError("onError")
+                    onError(ErrorResponse("404", "Check network connection"))
                 }
             }
         )
@@ -44,7 +49,7 @@ class NetworkModule(private val api: ApiWeatherService) {
     fun getWeatherByCity(
         cityName : String,
         onSuccess: (WeatherResponse?) -> Unit = {},
-        onError: (String) -> Unit = {}) {
+        onError: (ErrorResponse) -> Unit = {}) {
         callApi(
             call = api.getWeatherByCity(cityName = cityName),
             onSuccess = { response ->
@@ -61,7 +66,7 @@ class NetworkModule(private val api: ApiWeatherService) {
     fun getWeatherByZipCode(
         zipCode : String,
         onSuccess: (WeatherResponse?) -> Unit = {},
-        onError: (String) -> Unit = {}) {
+        onError: (ErrorResponse) -> Unit = {}) {
         callApi(
             call = api.getWeatherByZipCode(zipCode = zipCode),
             onSuccess = { response ->

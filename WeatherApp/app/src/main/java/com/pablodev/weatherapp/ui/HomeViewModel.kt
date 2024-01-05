@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.pablodev.weatherapp.data.ErrorResponse
 import com.pablodev.weatherapp.data.WeatherResponse
 import com.pablodev.weatherapp.network.NetworkModule
 import com.pablodev.weatherapp.utils.Logger
@@ -17,13 +18,17 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
     private val _weatherResponse = MutableLiveData<WeatherResponse>()
     val weatherResponse: LiveData<WeatherResponse> = _weatherResponse
 
+    private val _error = MutableLiveData<ErrorResponse>()
+    val error: LiveData<ErrorResponse> = _error
+
     fun getWeather(query: String) {
         if (query.isNumeric()) {
             logger.debug("Searching ZipCode = $query")
             viewModelScope.launch {
                 networkModule.getWeatherByZipCode(
                     zipCode = query,
-                    onSuccess = onWeatherSuccess
+                    onSuccess = onWeatherSuccess,
+                    onError = onWeatherError
                 )
             }
 
@@ -32,7 +37,8 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
             viewModelScope.launch {
                 networkModule.getWeatherByCity(
                     cityName = query,
-                    onSuccess = onWeatherSuccess
+                    onSuccess = onWeatherSuccess,
+                    onError = onWeatherError
                 )
             }
         }
@@ -42,6 +48,10 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
         response?.let {
             _weatherResponse.value = it
         }
+    }
+
+    private val onWeatherError: (ErrorResponse) -> Unit = {
+        _error.value = it
     }
 
     class HomeViewModelFactory(
