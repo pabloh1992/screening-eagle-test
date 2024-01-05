@@ -5,10 +5,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.pablodev.weatherapp.data.ErrorResponse
 import com.pablodev.weatherapp.data.WeatherResponse
 import com.pablodev.weatherapp.network.NetworkModule
+import com.pablodev.weatherapp.utils.CardinalDirection
 import com.pablodev.weatherapp.utils.Logger
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
@@ -44,6 +48,28 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
 
     private val onWeatherError: (ErrorResponse) -> Unit = {
         _error.value = it
+    }
+
+    suspend fun getWeatherForLocations(locationsMap: Map<CardinalDirection, LatLng>) {
+        logger.debug("getWeatherForLocations for $locationsMap")
+        val deferredResultsMap = mutableMapOf<CardinalDirection, Deferred<WeatherResponse?>>()
+
+        locationsMap.forEach { (cardinalDirection, latLng) ->
+            deferredResultsMap[cardinalDirection] = viewModelScope.async {
+                networkModule.getWeatherByCoordinates(
+                    latitude = latLng.latitude,
+                    longitude = latLng.longitude
+                )
+            }
+        }
+
+        val results = deferredResultsMap.map { (direction, deferredResult) ->
+            direction to deferredResult.await()
+        }.toMap()
+
+        results.forEach { (direction, result) ->
+            logger.debug("For direction $direction weather is $result")
+        }
     }
 
     class HomeViewModelFactory(

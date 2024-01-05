@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -23,6 +24,8 @@ import com.pablodev.weatherapp.network.NetworkModule
 import com.pablodev.weatherapp.utils.CardinalDirection
 import com.pablodev.weatherapp.utils.Logger
 import com.pablodev.weatherapp.utils.calculateDestination
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
@@ -92,17 +95,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 addFourLocations(it)
                 false
             }
-            //addFourLocations(it)
         }
     }
 
     private fun addFourLocations(mainLocation: LatLng) {
+        val locationMap = mutableMapOf<CardinalDirection, LatLng>()
         for (direction in CardinalDirection.entries) {
-            mMap.addMarker(
-                MarkerOptions().position(
-                    mainLocation.calculateDestination(Constants.DEFAULT_DISTANCE, direction.bearing)
-                )
-            )
+            val location = mainLocation.calculateDestination(Constants.DEFAULT_DISTANCE, direction.bearing)
+            mMap.addMarker(MarkerOptions().position(location))
+            locationMap[direction] = location
+        }
+        lifecycleScope.launch {
+            viewModel.getWeatherForLocations(locationMap)
         }
     }
 

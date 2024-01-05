@@ -4,6 +4,8 @@ import com.google.gson.Gson
 import com.pablodev.weatherapp.data.ErrorResponse
 import com.pablodev.weatherapp.data.WeatherResponse
 import com.pablodev.weatherapp.utils.Logger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -62,5 +64,28 @@ class NetworkModule(private val api: ApiWeatherService) {
                 onError(it)
             }
         )
+    }
+    suspend fun getWeatherByCoordinates(
+        latitude: Double,
+        longitude: Double
+    ) : WeatherResponse? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getWeatherByCoordinates(latitude = latitude, longitude = longitude)
+
+                // Check if the response is successful
+                if (response.isSuccessful) {
+
+                    return@withContext response.body()
+                } else {
+                    // Handle error cases if needed
+                    // For example, you can throw an exception or return null
+                    return@withContext null
+                }
+            } catch (e: Exception) {
+                // Handle exceptions, e.g., network errors
+                return@withContext null
+            }
+        }
     }
 }
