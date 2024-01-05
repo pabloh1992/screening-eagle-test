@@ -77,6 +77,22 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         viewModel.error.observe(viewLifecycleOwner) {
             showErrorSnackbar("Error: ${it.message}")
         }
+        viewModel.locationsWeatherResponse.observe(viewLifecycleOwner) { results ->
+
+            val directionWithHighestTemp = results.maxByOrNull { it.value?.main?.temp ?: Double.MIN_VALUE }?.key
+            val directionWithHighestHumidity = results.maxByOrNull { it.value?.main?.humidity ?: Int.MIN_VALUE }?.key
+            val directionWithHighestWindSpeed = results.maxByOrNull { it.value?.wind?.speed ?: Double.MIN_VALUE }?.key
+            val directionWithLongestRain = results.maxByOrNull { it.value?.rain?.oneHour ?: Double.MIN_VALUE}?.key
+
+            logger.debug("Highest Temperature: $directionWithHighestTemp")
+            logger.debug("Temperature ${results[directionWithHighestTemp]?.main?.temp}")
+            logger.debug("Highest Humidity: $directionWithHighestHumidity")
+            logger.debug("Humidity ${results[directionWithHighestTemp]?.main?.humidity}")
+            logger.debug("Highest Wind Speed: $directionWithHighestWindSpeed")
+            logger.debug("Wind Speed ${results[directionWithHighestWindSpeed]?.wind?.speed}")
+            logger.debug("Highest Longest Rain: $directionWithLongestRain")
+            logger.debug("Rain time ${results[directionWithLongestRain]?.rain?.oneHour}")
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -89,7 +105,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         val cityName = weatherResponse.name
         location?.let {
             mMap.clear()
-            val cityMarker = mMap.addMarker(MarkerOptions().position(it).title(cityName))
+            mMap.addMarker(MarkerOptions().position(it).title(cityName))
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it, Constants.DEFAULT_ZOOM))
             mMap.setOnMarkerClickListener { _ ->
                 addFourLocations(it)

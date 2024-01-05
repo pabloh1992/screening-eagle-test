@@ -22,6 +22,9 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
     private val _weatherResponse = MutableLiveData<WeatherResponse>()
     val weatherResponse: LiveData<WeatherResponse> = _weatherResponse
 
+    private val _locationsWeatherResponse = MutableLiveData<Map<CardinalDirection, WeatherResponse?>>()
+    val locationsWeatherResponse: LiveData<Map<CardinalDirection, WeatherResponse?>> = _locationsWeatherResponse
+
     private val _error = MutableLiveData<ErrorResponse>()
     val error: LiveData<ErrorResponse> = _error
 
@@ -70,6 +73,8 @@ class HomeViewModel (private val networkModule: NetworkModule) : ViewModel() {
         results.forEach { (direction, result) ->
             logger.debug("For direction $direction weather is $result")
         }
+
+        _locationsWeatherResponse.value = results
     }
 
     class HomeViewModelFactory(
